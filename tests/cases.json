@@ -1,0 +1,22 @@
+[
+ {"text": "We use NoSQL databases and MongoDB for storage.", "expect": ["MongoDB"], "note": "NoSQL must not match SQL"},
+ {"text": "Experience with PostgreSQL and MySQL is required.", "expect": ["PostgreSQL", "MySQL"], "note": "PostgreSQL is not plain SQL here"},
+ {"text": "Strong SQL and Python skills.", "expect": ["SQL", "Python"]},
+ {"text": "Working in R&D department with excellent people.", "expect": [], "note": "R&D is not R, excellent is not Excel"},
+ {"text": "Proficiency in Python, R, and SQL is expected.", "expect": ["Python", "R", "SQL"]},
+ {"text": "Knowledge of R-squared and model fit.", "expect": [], "note": "R-squared is not the R language"},
+ {"text": "We love JavaScript and JSON APIs.", "expect": ["JavaScript"], "note": "JSON must not match JS"},
+ {"text": "Experience with Java, not JavaScript.", "expect": ["Java", "JavaScript"]},
+ {"text": "Power BI, PowerBI or Power-BI reports.", "expect": ["Power BI", "Reporting"]},
+ {"text": "Работа в Excel и Power BI, построение дашбордов.", "expect": ["Excel", "Power BI", "Dashboards"]},
+ {"text": "Знание статистики, проверка гипотез, А/Б тесты.", "expect": ["Statistics", "Hypothesis testing", "A/B testing"]},
+ {"text": "Опыт работы с ClickHouse и Airflow, английский язык.", "expect": ["ClickHouse", "Airflow", "English"]},
+ {"text": "Машинное обучение и временные ряды, прогнозирование спроса.", "expect": ["Machine learning", "Time series", "Forecasting"]},
+ {"text": "Visualization with matplotlib and seaborn; Git and GitHub.", "expect": ["Data visualization", "matplotlib", "seaborn", "Git", "GitHub"], "note": "Git must not match inside GitHub"},
+ {"text": "Customer segmentation with clustering and cohort analysis.", "expect": ["Clustering", "Cohort analysis"]},
+ {"text": "Tableau dashboards on top of a data warehouse built with dbt and Airflow.", "expect": ["Tableau", "Dashboards", "Data warehouse", "dbt", "Airflow"]},
+ {"text": "We are a friendly team in a modern office with free coffee.", "expect": [], "note": "no skills"},
+ {"text": "Experience with scikit-learn, sklearn, XGBoost and TensorFlow.", "expect": ["scikit-learn", "XGBoost", "TensorFlow"]},
+ {"text": "Excellent communication; strong presentations; fluent English or Chinese.", "expect": ["Communication", "Presentation", "English", "Chinese"]},
+ {"text": "Experience with the C++ language and bash scripts.", "expect": ["C++", "Bash"]}
+]

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill Gap Analyzer</title>
+<style>
+:root{--bg:#fcfcfb;--card:#ffffff;--ink:#0b0b0b;--muted:#52514e;--grid:#e6e5e1;--blue:#2a78d6;--blue-soft:#e8f0fb;--orange:#eb6834;--orange-soft:#fdeee7}
+@media (prefers-color-scheme:dark){:root{--bg:#121211;--card:#1b1b1a;--ink:#f2f1ee;--muted:#a3a29d;--grid:#33332f;--blue:#5b9bec;--blue-soft:#1d2a3d;--orange:#f08a5d;--orange-soft:#3a251c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+main{max-width:1000px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.6rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 18px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,330px);gap:18px;align-items:start}
+@media (max-width:800px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--grid);border-radius:12px;padding:14px;margin-bottom:14px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{font:inherit;border:1px solid var(--grid);background:var(--card);color:var(--muted);padding:7px 14px;border-radius:8px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+input#roleq{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--grid);border-radius:8px;padding:10px;margin-top:6px}
+textarea{width:100%;min-height:190px;font:inherit;font-size:.92rem;color:var(--ink);background:var(--bg);border:1px solid var(--grid);border-radius:8px;padding:10px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+button.b{font:inherit;font-size:.9rem;border:1px solid var(--grid);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
+button.b:hover{border-color:var(--blue)}
+.hint{color:var(--muted);font-size:.85rem}
+.score{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.score .n{font-size:3rem;font-weight:700;color:var(--blue);line-height:1}
+h2{font-size:1rem;margin:14px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.85rem;border:1px solid var(--grid);background:var(--card);color:var(--ink)}
+.chip.ok{background:var(--blue-soft);border-color:var(--blue)}
+.chip.gap{background:var(--orange-soft);border-color:var(--orange)}
+.chip small{color:var(--muted);margin-left:4px}
+.proj{margin:0;padding-left:18px}
+.proj li{margin-bottom:4px}
+.proj span{color:var(--muted);font-size:.85rem}
+.mrow{display:grid;grid-template-columns:minmax(0,150px) 1fr 3.4em;gap:8px;align-items:center;font-size:.88rem;margin-bottom:4px}
+.track{height:10px;background:var(--grid);border-radius:5px;overflow:hidden}
+.fill{height:100%;border-radius:5px;background:var(--blue)}
+.fill.gap{background:var(--orange)}
+.mrow .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .pct{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:14px;font-size:.8rem;color:var(--muted);margin:6px 0 10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+details{margin-bottom:8px}
+summary{cursor:pointer;font-weight:600;font-size:.9rem}
+.chipbtn{font:inherit;font-size:.82rem;padding:2px 9px;border-radius:999px;border:1px solid var(--grid);background:var(--card);color:var(--muted);cursor:pointer;margin:3px 4px 0 0}
+.chipbtn[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue);color:var(--ink)}
+.empty{color:var(--muted)}
+footer{color:var(--muted);font-size:.82rem;margin-top:8px}
+.hidden{display:none}
+.verdict{font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>Skill Gap Analyzer</h1>
+<p class="sub">Paste a job posting, or just type a profession and level (internship, junior, middle). See which skills are needed, how well you match, what is missing and which of your projects to mention. English or Russian.</p>
+<div class="layout">
+  <div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-one" aria-selected="true">One vacancy</button>
+      <button class="tab" role="tab" id="tab-many" aria-selected="false">Several vacancies</button>
+      <button class="tab" role="tab" id="tab-role" aria-selected="false">By profession</button>
+    </div>
+    <div class="card hidden" id="rolecard">
+      <label for="roleq" class="hint">Type a profession, with a level if you like (EN or RU): <em>стажировка data analyst</em>, <em>ML инженер junior</em>, <em>product analyst intern</em></label>
+      <input id="roleq" list="rolelist" autocomplete="off" placeholder="Data Analyst" aria-label="Profession">
+      <datalist id="rolelist"></datalist>
+      <div class="row" id="rolechips"></div>
+      <div class="row" id="levelbtns" role="group" aria-label="Level"></div>
+    </div>
+    <div class="card" id="textcard">
+      <textarea id="text" placeholder="Paste the vacancy text here..." aria-label="Vacancy text"></textarea>
+      <div class="row">
+        <button class="b" id="example">Load example</button>
+        <button class="b" id="clear">Clear</button>
+        <span class="hint" id="modehint"></span>
+      </div>
+    </div>
+    <div class="card" id="result"><span class="empty">Results will appear here.</span></div>
+  </div>
+  <div>
+    <div class="card">
+      <h2 style="margin-top:0">My skills</h2>
+      <p class="hint" style="margin:0 0 8px">Click a skill to switch it on or off. The starting set is a sample profile; make it yours. It is saved in your browser.</p>
+      <div id="profile"></div>
+      <div class="row"><button class="b" id="reset">Reset to sample profile</button></div>
+    </div>
+  </div>
+</div>
+<footer>
+  Skills are found with a hand-made dictionary of 80+ data skills (English and Russian word forms), not with AI, so it can miss unusual wording.
+  The example vacancies are texts written for this demo, not real postings. Everything runs in your browser; nothing is sent anywhere.
+</footer>
+</main>
+<script src="engine.js"></script>
+<script>
+const E = window.SkillEngine;
+const $ = id => document.getElementById(id);
+let mode = "one";
+let mine = new Set(E.DEFAULT_PROFILE);
+try { const s = JSON.parse(localStorage.getItem("sga-profile") || "null"); if (Array.isArray(s)) mine = new Set(s); } catch (e) {}
+function save() { try { localStorage.setItem("sga-profile", JSON.stringify([...mine])); } catch (e) {} }
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function renderProfile() {
+  const cats = [...new Set(E.SKILLS.map(s => s.c))];
+  $("profile").innerHTML = cats.map((c, i) => {
+    const list = E.SKILLS.filter(s => s.c === c);
+    const on = list.filter(s => mine.has(s.n)).length;
+    return '<details' + (on ? " open" : "") + '><summary>' + esc(c) + ' <span class="hint">(' + on + '/' + list.length + ')</span></summary>' +
+      list.map(s => '<button type="button" class="chipbtn" aria-pressed="' + mine.has(s.n) + '" data-skill="' + esc(s.n) + '">' + esc(s.n) + '</button>').join("") + '</details>';
+  }).join("");
+}
+$("profile").addEventListener("click", e => {
+  const b = e.target.closest(".chipbtn"); if (!b) return;
+  const n = b.dataset.skill; if (mine.has(n)) mine.delete(n); else mine.add(n);
+  const open = [...document.querySelectorAll("#profile details")].map(d => d.open);
+  renderProfile(); document.querySelectorAll("#profile details").forEach((d, i) => d.open = open[i]);
+  save(); analyse();
+});
+$("reset").addEventListener("click", () => { mine = new Set(E.DEFAULT_PROFILE); save(); renderProfile(); analyse(); });
+
+function chips(list, cls) { return list.length ? '<div class="chips">' + list.map(s => '<span class="chip ' + cls + '">' + esc(s) + '</span>').join("") + '</div>' : '<span class="empty">none</span>'; }
+
+function renderOne(text) {
+  const t = text.trim();
+  if (!t) return '<span class="empty">Paste a vacancy to start.</span>';
+  const a = E.analyseVacancy(t, [...mine]);
+  if (!a.required.length) return '<span class="empty">No known data skills were found in this text. Check that it is a job description, or try a longer one.</span>';
+  return '<div class="score"><span class="n">' + a.matchPct + '%</span><span>match<br><span class="hint">' + a.matched.length + ' of ' + a.required.length + ' skills in the vacancy are in your profile</span></span></div>' +
+    '<h2>You have</h2>' + chips(a.matched, "ok") +
+    '<h2>Missing</h2>' + chips(a.missing, "gap") +
+    '<h2>Projects to mention</h2>' + (a.projects.length ? '<ul class="proj">' + a.projects.map(p => '<li><strong>' + esc(p.name) + '</strong> <span>covers: ' + p.covers.map(esc).join(", ") + '</span></li>').join("") + '</ul>' : '<span class="empty">no project covers these skills yet</span>');
+}
+
+function renderMany(text) {
+  const vs = E.splitVacancies(text);
+  if (!vs.length) return '<span class="empty">Paste several vacancies and separate them with a line containing only <code>---</code>.</span>';
+  const m = E.analyseMarket(vs, [...mine]);
+  if (!m.rows.length) return '<span class="empty">No known data skills were found.</span>';
+  const top = m.rows.slice(0, 15);
+  return '<div class="score"><span class="n">' + m.avgMatch + '%</span><span>average match<br><span class="hint">across ' + m.n + ' vacanc' + (m.n === 1 ? 'y' : 'ies') + '</span></span></div>' +
+    '<div class="legend"><span><i class="dot" style="background:var(--blue)"></i>you have it</span><span><i class="dot" style="background:var(--orange)"></i>not in your profile</span></div>' +
+    top.map(r => '<div class="mrow"><span class="name" title="' + esc(r.skill) + '">' + esc(r.skill) + '</span><span class="track"><span class="fill' + (r.have ? '' : ' gap') + '" style="display:block;width:' + Math.round(r.share * 100) + '%"></span></span><span class="pct">' + Math.round(r.share * 100) + '%</span></div>').join("") +
+    '<h2>Most requested skills you do not have</h2>' + (m.gaps.length ? chips(m.gaps.map(g => g.skill + " (" + Math.round(g.share * 100) + "%)"), "gap") : '<span class="empty">none, you cover everything found</span>');
+}
+
+
+let roleId = "data-analyst", level = "intern";
+function renderRole() {
+  const a = E.analyseRole(roleId, level, [...mine]);
+  if (!a) return '<span class="empty">Pick a profession.</span>';
+  const lv = E.LEVELS.find(l => l.id === level).name;
+  const words = { ready: "You cover most of what is expected.", close: "You are close; a few gaps to fill.", far: "A big gap; this is a longer path." };
+  const cmp = E.compareRoles(level, [...mine]);
+  return '<div class="score"><span class="n">' + a.pct + '%</span><span>' + esc(a.roleName) + ', ' + esc(lv.toLowerCase()) + '<br><span class="hint">' + a.mustHave.length + ' of ' + a.must.length + ' required skills in your profile. <span class="verdict">' + words[a.verdict] + '</span></span></span></div>' +
+    '<h2>Required skills you have</h2>' + chips(a.mustHave, "ok") +
+    '<h2>Required skills you are missing</h2>' + chips(a.mustMissing, "gap") +
+    (a.mustMissing.length ? '<h2>What to learn first</h2><ol class="proj">' + a.plan.map(s => '<li>' + esc(s) + '</li>').join("") + '</ol>' : '') +
+    '<h2>Nice to have (' + a.nicePct + '% covered)</h2>' + chips(a.niceHave, "ok") + '<div style="height:6px"></div>' + chips(a.niceMissing, "gap") +
+    '<h2>Projects to mention</h2>' + (a.projects.length ? '<ul class="proj">' + a.projects.map(p => '<li><strong>' + esc(p.name) + '</strong> <span>covers: ' + p.covers.map(esc).join(", ") + '</span></li>').join("") + '</ul>' : '<span class="empty">no project covers these skills yet</span>') +
+    '<h2>Fit by profession at this level</h2>' + cmp.map(r => '<div class="mrow"><span class="name">' + esc(r.name) + '</span><span class="track"><span class="fill' + (r.id === roleId ? '' : '') + '" style="display:block;width:' + r.pct + '%;opacity:' + (r.id === roleId ? 1 : .55) + '"></span></span><span class="pct">' + r.pct + '%</span></div>').join("") +
+    '<p class="hint">Role requirements are hand-made estimates of typical postings, not market data. Paste real vacancies for exact numbers.</p>';
+}
+function buildRoleUI() {
+  $("rolelist").innerHTML = E.ROLES.map(r => '<option value="' + esc(r.name) + '">').join("");
+  $("rolechips").innerHTML = E.ROLES.map(r => '<button type="button" class="chipbtn" data-role="' + r.id + '" aria-pressed="' + (r.id === roleId) + '">' + esc(r.name) + '</button>').join("");
+  $("levelbtns").innerHTML = E.LEVELS.map(l => '<button type="button" class="chipbtn" data-level="' + l.id + '" aria-pressed="' + (l.id === level) + '">' + esc(l.name) + '</button>').join("");
+}
+$("rolechips").addEventListener("click", e => { const b = e.target.closest("[data-role]"); if (!b) return; roleId = b.dataset.role; $("roleq").value = ""; buildRoleUI(); analyse(); });
+$("levelbtns").addEventListener("click", e => { const b = e.target.closest("[data-level]"); if (!b) return; level = b.dataset.level; buildRoleUI(); analyse(); });
+$("roleq").addEventListener("input", () => {
+  const r = E.resolveRole($("roleq").value);
+  if (r.role) roleId = r.role; if (r.level) level = r.level;
+  buildRoleUI(); analyse();
+});
+
+function analyse() {
+  const text = $("text").value;
+  $("result").innerHTML = mode === "one" ? renderOne(text) : mode === "many" ? renderMany(text) : renderRole();
+}
+function setMode(m) {
+  mode = m;
+  $("tab-one").setAttribute("aria-selected", m === "one"); $("tab-many").setAttribute("aria-selected", m === "many"); $("tab-role").setAttribute("aria-selected", m === "role");
+  $("rolecard").classList.toggle("hidden", m !== "role"); $("textcard").classList.toggle("hidden", m === "role");
+  if (m === "role") buildRoleUI();
+  $("modehint").textContent = m === "many" ? "Separate vacancies with a line containing only ---" : "";
+  $("text").value = ""; analyse();
+}
+$("tab-one").addEventListener("click", () => setMode("one"));
+$("tab-many").addEventListener("click", () => setMode("many"));
+$("tab-role").addEventListener("click", () => setMode("role"));
+$("text").addEventListener("input", analyse);
+$("clear").addEventListener("click", () => { $("text").value = ""; analyse(); });
+$("example").addEventListener("click", () => { $("text").value = mode === "one" ? E.EXAMPLES[0] : E.EXAMPLES.join("\n---\n"); analyse(); });
+renderProfile(); setMode("one");
+window.__app = { analyse };
+</script>
+</body>
+</html>
